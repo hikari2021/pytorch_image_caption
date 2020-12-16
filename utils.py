@@ -77,6 +77,7 @@ def create_input_files(dataset, karpathy_json_path, image_folder, captions_per_i
     word_map['<end>'] = len(word_map) + 1
     word_map['<pad>'] = 0
     #word map?
+    #ipad写入测试
     # Create a base/root name for all output files
     base_filename = dataset + '_' + str(captions_per_image) + '_cap_per_img_' + str(min_word_freq) + '_min_word_freq'
 
