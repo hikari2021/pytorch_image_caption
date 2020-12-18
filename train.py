@@ -52,6 +52,7 @@ def main():
 
     # Initialize / load checkpoint
     if checkpoint is None:
+        #具体定义见models.py
         decoder = DecoderWithAttention(attention_dim=attention_dim,
                                        embed_dim=emb_dim,
                                        decoder_dim=decoder_dim,

@@ -8,7 +8,7 @@ from tqdm import tqdm
 from collections import Counter
 from random import seed, choice, sample
 
-
+#此函数作用：把原生输入文件打包到单个文件里，节省io时间
 def create_input_files(dataset, karpathy_json_path, image_folder, captions_per_image, min_word_freq, output_folder,
                        max_len=100):
     """
@@ -84,7 +84,7 @@ def create_input_files(dataset, karpathy_json_path, image_folder, captions_per_i
     # Save word map to a JSON
     with open(os.path.join(output_folder, 'WORDMAP_' + base_filename + '.json'), 'w') as j:
         json.dump(word_map, j)
-
+    
     # Sample captions for each image, save images to HDF5 file, and captions and their lengths to JSON files
     seed(123)
     for impaths, imcaps, split in [(train_image_paths, train_image_captions, 'TRAIN'),
