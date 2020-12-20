@@ -11,7 +11,7 @@ from utils import *
 from nltk.translate.bleu_score import corpus_bleu
 
 # Data parameters
-data_folder = '/media/ssd/caption data'  # folder with data files saved by create_input_files.py
+data_folder = './caption_data'  # folder with data files saved by create_input_files.py
 data_name = 'coco_5_cap_per_img_5_min_word_freq'  # base name shared by data files
 
 # Model parameters
@@ -92,10 +92,10 @@ def main():
                                      std=[0.229, 0.224, 0.225])
     train_loader = torch.utils.data.DataLoader(
         CaptionDataset(data_folder, data_name, 'TRAIN', transform=transforms.Compose([normalize])),
-        batch_size=batch_size, shuffle=True, num_workers=workers, pin_memory=True)
+        batch_size=batch_size, shuffle=True, num_workers=0, pin_memory=True)
     val_loader = torch.utils.data.DataLoader(
         CaptionDataset(data_folder, data_name, 'VAL', transform=transforms.Compose([normalize])),
-        batch_size=batch_size, shuffle=True, num_workers=workers, pin_memory=True)
+        batch_size=batch_size, shuffle=True, num_workers=0, pin_memory=True)
 
     # Epochs
     for epoch in range(start_epoch, epochs):
@@ -179,8 +179,9 @@ def train(train_loader, encoder, decoder, criterion, encoder_optimizer, decoder_
 
         # Remove timesteps that we didn't decode at, or are pads
         # pack_padded_sequence is an easy trick to do this
-        scores, _ = pack_padded_sequence(scores, decode_lengths, batch_first=True)
-        targets, _ = pack_padded_sequence(targets, decode_lengths, batch_first=True)
+        #修改过 因为新pytorch版本pack函数只有一个返回值
+        scores = pack_padded_sequence(scores, decode_lengths, batch_first=True)
+        targets= pack_padded_sequence(targets, decode_lengths, batch_first=True)
 
         # Calculate loss
         loss = criterion(scores, targets)
@@ -274,8 +275,9 @@ def validate(val_loader, encoder, decoder, criterion):
             # pack_padded_sequence is an easy trick to do this
             scores_copy = scores.clone()
             #todo 整理一下pack_padded_sequence和pad_packed_sequence的用法,防止遗忘
-            scores, _ = pack_padded_sequence(scores, decode_lengths, batch_first=True)
-            targets, _ = pack_padded_sequence(targets, decode_lengths, batch_first=True)
+            #已修改以适配pytorch高版本
+            scores= pack_padded_sequence(scores, decode_lengths, batch_first=True)
+            targets= pack_padded_sequence(targets, decode_lengths, batch_first=True)
 
             # Calculate loss
             loss = criterion(scores, targets)
