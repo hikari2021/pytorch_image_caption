@@ -87,6 +87,7 @@ def main():
     criterion = nn.CrossEntropyLoss().to(device)
 
     # Custom dataloaders
+    #标准化 固定平均数? todo:理解normalize在干什么
     normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
                                      std=[0.229, 0.224, 0.225])
     train_loader = torch.utils.data.DataLoader(
@@ -117,6 +118,7 @@ def main():
               epoch=epoch)
 
         # One epoch's validation
+        #todo:研究一下belu4是怎么算的-已解决
         recent_bleu4 = validate(val_loader=val_loader,
                                 encoder=encoder,
                                 decoder=decoder,
@@ -222,7 +224,7 @@ def train(train_loader, encoder, decoder, criterion, encoder_optimizer, decoder_
                                                                           data_time=data_time, loss=losses,
                                                                           top5=top5accs))
 
-
+#belu4怎么算的?
 def validate(val_loader, encoder, decoder, criterion):
     """
     Performs one epoch's validation.
@@ -233,10 +235,12 @@ def validate(val_loader, encoder, decoder, criterion):
     :param criterion: loss layer
     :return: BLEU-4 score
     """
+    # 状态转化
     decoder.eval()  # eval mode (no dropout or batchnorm)
     if encoder is not None:
         encoder.eval()
 
+    #AverageMeter:记录值的平均,次数,总和
     batch_time = AverageMeter()
     losses = AverageMeter()
     top5accs = AverageMeter()
@@ -248,10 +252,10 @@ def validate(val_loader, encoder, decoder, criterion):
 
     # explicitly disable gradient calculation to avoid CUDA memory error
     # solves the issue #57
+    #关闭梯度,减少内存损耗
     with torch.no_grad():
-        # Batches
+        #Batches
         for i, (imgs, caps, caplens, allcaps) in enumerate(val_loader):
-
             # Move to device, if available
             imgs = imgs.to(device)
             caps = caps.to(device)
@@ -260,6 +264,7 @@ def validate(val_loader, encoder, decoder, criterion):
             # Forward prop.
             if encoder is not None:
                 imgs = encoder(imgs)
+            #decoder这返回的都是啥?
             scores, caps_sorted, decode_lengths, alphas, sort_ind = decoder(imgs, caps, caplens)
 
             # Since we decoded starting with <start>, the targets are all words after <start>, up to <end>
@@ -268,6 +273,7 @@ def validate(val_loader, encoder, decoder, criterion):
             # Remove timesteps that we didn't decode at, or are pads
             # pack_padded_sequence is an easy trick to do this
             scores_copy = scores.clone()
+            #todo 整理一下pack_padded_sequence和pad_packed_sequence的用法,防止遗忘
             scores, _ = pack_padded_sequence(scores, decode_lengths, batch_first=True)
             targets, _ = pack_padded_sequence(targets, decode_lengths, batch_first=True)
 

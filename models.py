@@ -1,8 +1,15 @@
 import torch
 from torch import nn
 import torchvision
-
+"""
+模型概述:
+基本使用AUTOENCODER结构
+encoder通过resnet编码图片输入
+decoder通过加入注意力机制的lstm解码输出
+看起来没有加载预训练的权重
+"""
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 
 
 class Encoder(nn.Module):
@@ -50,7 +57,7 @@ class Encoder(nn.Module):
             for p in c.parameters():
                 p.requires_grad = fine_tune
 
-
+#ATTN写的真简单
 class Attention(nn.Module):
     """
     Attention Network.
@@ -77,6 +84,8 @@ class Attention(nn.Module):
         :param decoder_hidden: previous decoder output, a tensor of dimension (batch_size, decoder_dim)
         :return: attention weighted encoding, weights
         """
+        #num_pixels是什么
+        #在每一层后边用括号写维度是好文明
         att1 = self.encoder_att(encoder_out)  # (batch_size, num_pixels, attention_dim)
         att2 = self.decoder_att(decoder_hidden)  # (batch_size, attention_dim)
         att = self.full_att(self.relu(att1 + att2.unsqueeze(1))).squeeze(2)  # (batch_size, num_pixels)
@@ -190,7 +199,7 @@ class DecoderWithAttention(nn.Module):
         # We won't decode at the <end> position, since we've finished generating as soon as we generate <end>
         # So, decoding lengths are actual lengths - 1
         decode_lengths = (caption_lengths - 1).tolist()
-
+        #alpha是什么?
         # Create tensors to hold word predicion scores and alphas
         predictions = torch.zeros(batch_size, max(decode_lengths), vocab_size).to(device)
         alphas = torch.zeros(batch_size, max(decode_lengths), num_pixels).to(device)
